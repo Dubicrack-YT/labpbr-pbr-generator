@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es-MX">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Generador local de mapas PBR normales para resource packs de Minecraft Java y Bedrock." />
+    <title>PBR Forge — Generador local PBR</title>
+    <link rel="icon" type="image/svg+xml" href="./pbr-forge-mark.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="forge-shell" id="app">
+      <header class="topbar">
+        <a class="brand" href="#inicio" aria-label="PBR Forge, volver al inicio">
+          <img src="./pbr-forge-mark.svg" alt="" class="brand-mark" />
+          <span><strong>PBR</strong><em>/</em>FORGE</span>
+        </a>
+        <div class="topbar-meta"><span class="status-dot"></span>LOCAL · SIN SUBIDAS <span class="build-tag">NORMAL MAPS · 1.0</span></div>
+      </header>
+
+      <section class="tool-layout" id="inicio">
+        <aside class="control-rail" aria-label="Controles del generador">
+          <div class="step-title"><span>01</span><p>CONVERSIÓN<br /><strong>PBR NORMAL</strong></p></div>
+          <div class="rail-block">
+            <p class="eyebrow">DESTINO</p>
+            <h2>Elige el juego<br />antes del pack.</h2>
+            <p class="helper">Las extensiones, rutas y salida cambian según el destino.</p>
+            <div class="edition-switch" role="radiogroup" aria-label="Destino de Minecraft">
+              <button class="edition-option is-selected" type="button" role="radio" aria-checked="true" data-edition="java">
+                <span class="option-kicker">JAVA</span><strong>Java LabPBR</strong><small>ZIP o JAR · normal + _s</small>
+              </button>
+              <button class="edition-option" type="button" role="radio" aria-checked="false" data-edition="bedrock">
+                <span class="option-kicker">BEDROCK</span><strong>Bedrock PBR</strong><small>ZIP o MCPACK · normal + MER</small>
+              </button>
+            </div>
+          </div>
+
+          <div class="rail-block profile-block" id="bedrock-profiles" hidden>
+            <p class="eyebrow">RENDER BEDROCK</p>
+            <div class="profile-options" role="radiogroup" aria-label="Perfil Bedrock">
+              <button class="profile-option is-selected" type="button" role="radio" aria-checked="true" data-profile="vibrant"><strong>Vibrant Visuals</strong><small>PBR multiplataforma · bloques, ítems y entidades.</small></button>
+              <button class="profile-option" type="button" role="radio" aria-checked="false" data-profile="rtx"><strong>RTX</strong><small>Ray tracing · PBR en bloques según Bedrock.</small></button>
+            </div>
+            <p class="warning" id="profile-warning">Vibrant Visuals puede cambiar entre versiones, dispositivos y recursos activos. El pack no añade shaders.</p>
+          </div>
+
+          <div class="rail-block">
+            <p class="eyebrow">DETALLE DE NORMAL</p>
+            <div class="strength-readout"><output id="strength-output">2.2</output><span>intensidad</span></div>
+            <input id="strength" class="strength-range" type="range" min="0.8" max="4" value="2.2" step="0.1" aria-label="Intensidad de normal" />
+            <div class="range-labels"><span>SUAVE</span><span>MARCAD0</span></div>
+            <p class="helper">Deriva microdetalle del color. No crea heightmap, parallax, AO ni emisión falsa.</p>
+          </div>
+
+          <div class="rail-block method-block">
+            <p class="eyebrow">TRATAMIENTO</p>
+            <ul class="method-list">
+              <li><i class="layer-color"></i>Color y resolución conservados</li>
+              <li><i class="layer-normal"></i>Normal generada o preservada</li>
+              <li><i class="layer-mer"></i>Rugosidad y metal automático</li>
+            </ul>
+          </div>
+        </aside>
+
+        <section class="workbench" aria-labelledby="hero-title">
+          <div class="hero-panel">
+            <div class="hero-copy">
+              <p class="eyebrow orange">BANCO DE MATERIALES / LOCAL</p>
+              <h1 id="hero-title">Convierte color<br />en <em>superficie.</em></h1>
+              <p>Genera capas PBR normales, con lectura de material moderada. Mantiene la textura original; no la transforma en un espejo Glossy.</p>
+              <div class="hero-labels"><span>ALBEDO</span><span>NORMAL</span><span>MER / _S</span></div>
+            </div>
+            <img class="hero-image" src="./pbr-normal-material-lab-hero.webp" alt="Estudio de piedra, madera y cobre con respuesta PBR normal" />
+          </div>
+
+          <section class="input-panel" aria-labelledby="input-title">
+            <div class="panel-heading">
+              <div><p class="eyebrow">02 / MATERIAL DE ORIGEN</p><h2 id="input-title">Un pack completo, no PNGs sueltos.</h2></div>
+              <span class="format-chip" id="format-chip">JAVA · .ZIP / .JAR</span>
+            </div>
+            <input id="file-input" class="file-input" type="file" multiple accept=".zip,.jar" aria-label="Seleccionar paquetes para convertir" />
+            <button class="dropzone" id="dropzone" type="button" aria-describedby="upload-help">
+              <span class="drop-icon" aria-hidden="true">↥</span>
+              <span><strong id="drop-title">Suelta resource packs Java o JARs</strong><small id="drop-help">ZIP · JAR · selección múltiple</small></span>
+              <span class="drop-action">ELEGIR ARCHIVOS</span>
+            </button>
+            <p class="upload-help" id="upload-help">Solo se procesan bloques, ítems y entidades. GUI, fuentes, pantallas, mapas, pinturas y sonidos se ignoran por completo.</p>
+            <div class="file-queue" id="file-queue" aria-live="polite">
+              <div class="empty-queue"><span>—</span>La cola está vacía. Elige un archivo empaquetado para iniciar.</div>
+            </div>
+          </section>
+
+          <section class="generation-panel" aria-labelledby="generation-title">
+            <div class="generation-copy"><p class="eyebrow">03 / MAPAS DE SALIDA</p><h2 id="generation-title">PBR normal,<br /><em>sin acabado espejo.</em></h2><p id="output-description">La salida Java crea un resource pack ZIP con color preservado, normal derivada y mapa LABPBR <code>_s</code>.</p></div>
+            <div class="output-preview">
+              <div class="channel-tile normal-tile"><span>N</span><b>Normal</b><small>pendiente local</small></div>
+              <div class="channel-tile properties-tile"><span id="properties-letter">S</span><b id="properties-name">Propiedades</b><small id="properties-detail">suavidad · F0</small></div>
+              <div class="profile-note" id="profile-note">Lectura automática del nombre: metales, madera, piedra, vidrio y material genérico. Puedes conservar mapas ya existentes.</div>
+            </div>
+          </section>
+
+          <section class="convert-strip" aria-label="Acción de conversión">
+            <div><p class="eyebrow">RESULTADO</p><strong id="result-label">RESOURCE PACK ZIP · JAVA LABPBR</strong><small id="processing-summary">0 archivos en cola</small></div>
+            <button class="convert-button" id="convert-button" type="button" disabled>GENERAR MAPAS PBR <span>→</span></button>
+          </section>
+
+          <section class="studies" aria-label="Notas visuales de materiales">
+            <article class="study-card"><div class="study-art art-normal" role="img" aria-label="Visual abstracto de la capa normal con detalle de piedra"></div><div><p class="eyebrow">NORMAL</p><h3>Detalle que sigue<br />la textura.</h3><p>La normal se deriva de cambios de luminancia; no fabrica relieve geométrico.</p></div></article>
+            <article class="study-card"><div class="study-art art-properties" role="img" aria-label="Visual abstracto de propiedades PBR para madera, piedra y metal"></div><div><p class="eyebrow">PROPIEDADES</p><h3>Rugosidad antes<br />que reflejo.</h3><p>El color original permanece intacto y la propiedad se asigna con cautela.</p></div></article>
+            <article class="study-card"><div class="study-art art-output" role="img" aria-label="Visual abstracto de paquetes locales de salida"></div><div><p class="eyebrow">SALIDA</p><h3>Un archivo por<br />cada entrada.</h3><p>Todos los cálculos y compresión ZIP ocurren dentro de este navegador.</p></div></article>
+          </section>
+
+          <section class="notes-panel" aria-label="Límites y compatibilidad">
+            <div><p class="eyebrow orange">LÍMITES CLAROS</p><h2>Capas útiles,<br />promesas honestas.</h2></div>
+            <div class="notes-grid">
+              <p><strong>Sin imágenes individuales.</strong> Java acepta ZIP/JAR; Bedrock, ZIP/MCPACK. Un JAR se lee solo como fuente Java y siempre exporta un ZIP.</p>
+              <p><strong>Sin emisión falsa.</strong> El canal emissive se deja en cero. No se generan heightmaps, AO horneado, bump ni parallax.</p>
+              <p><strong>Compatibilidad real.</strong> Bedrock Vibrant puede aplicar PBR a bloques, ítems y entidades; RTX conserva PBR solo para bloques.</p>
+              <p><strong>Control local.</strong> Límite de 300 MB y 20 000 texturas elegibles por archivo. Las texturas no abandonan el dispositivo.</p>
+            </div>
+          </section>
+        </section>
+      </section>
+      <footer><span>PBR FORGE · CLIENT-SIDE</span><a href="https://learn.microsoft.com/en-us/minecraft/creator/documents/vibrantvisuals/pbroverview?view=minecraft-bedrock-stable" target="_blank" rel="noreferrer">GUÍA PBR BEDROCK ↗</a><span>NO ES UN GENERADOR GLOSSY</span></footer>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js" defer></script>
+    <script src="./app.js" defer></script>
+  </body>
+</html>
