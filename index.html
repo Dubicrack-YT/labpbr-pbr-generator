@@ -18,7 +18,7 @@
           <img src="./pbr-forge-mark.svg" alt="" class="brand-mark" />
           <span><strong>PBR</strong><em>/</em>FORGE</span>
         </a>
-        <div class="topbar-meta"><span class="status-dot"></span>LOCAL · SIN SUBIDAS <span class="build-tag">NORMAL MAPS · 1.0</span></div>
+        <div class="topbar-meta"><span class="status-dot"></span>LOCAL · SIN SUBIDAS <span class="build-tag">PBR + DEPTH · 1.1</span></div>
       </header>
 
       <section class="tool-layout" id="inicio">
@@ -30,10 +30,10 @@
             <p class="helper">Las extensiones, rutas y salida cambian según el destino.</p>
             <div class="edition-switch" role="radiogroup" aria-label="Destino de Minecraft">
               <button class="edition-option is-selected" type="button" role="radio" aria-checked="true" data-edition="java">
-                <span class="option-kicker">JAVA</span><strong>Java LabPBR</strong><small>ZIP o JAR · normal + _s</small>
+                <span class="option-kicker">JAVA</span><strong>Java LabPBR</strong><small>ZIP o JAR · normal + _s + depth α</small>
               </button>
               <button class="edition-option" type="button" role="radio" aria-checked="false" data-edition="bedrock">
-                <span class="option-kicker">BEDROCK</span><strong>Bedrock PBR</strong><small>ZIP o MCPACK · normal + MER</small>
+                <span class="option-kicker">BEDROCK</span><strong>Bedrock PBR</strong><small>ZIP o MCPACK · normal/altura + MER</small>
               </button>
             </div>
           </div>
@@ -71,7 +71,24 @@
             <div class="strength-readout"><output id="strength-output">2.2</output><span>intensidad</span></div>
             <input id="strength" class="strength-range" type="range" min="0.8" max="4" value="2.2" step="0.1" aria-label="Intensidad de normal" />
             <div class="range-labels"><span>SUAVE</span><span>MARCAD0</span></div>
-            <p class="helper">Deriva microdetalle del color. No crea heightmap, parallax, AO ni emisión falsa.</p>
+            <p class="helper">Deriva microdetalle del color; se combina con la capa de profundidad, sin AO ni emisión falsa.</p>
+          </div>
+
+          <div class="rail-block depth-block">
+            <p class="eyebrow">PROFUNDIDAD DERIVADA</p>
+            <div class="strength-readout depth-readout"><output id="depth-output">60</output><span>escala</span></div>
+            <input id="depth" class="strength-range depth-range" type="range" min="0" max="100" value="60" step="1" aria-label="Intensidad de profundidad" />
+            <div class="range-labels"><span>PLANA</span><span>PROFUNDA</span></div>
+            <p class="helper">Se estima desde luz y bordes del albedo. Es una aproximación de superficie, no geometría real del modelo.</p>
+          </div>
+
+          <div class="rail-block depth-mode-block" id="depth-mode-block" hidden>
+            <p class="eyebrow">CAPA BEDROCK</p>
+            <div class="depth-options" role="radiogroup" aria-label="Capa de detalle Bedrock">
+              <button class="depth-option is-selected" type="button" role="radio" aria-checked="true" data-depth-mode="normal"><strong>Normal + MER</strong><small>Bloques, ítems y entidades.</small></button>
+              <button class="depth-option" type="button" role="radio" aria-checked="false" data-depth-mode="heightmap"><strong>Profundidad + MER</strong><small>Heightmap · solo bloques.</small></button>
+            </div>
+            <p class="depth-mode-note" id="depth-mode-note">El modo Normal preserva el alcance amplio. Elige Profundidad para emitir un heightmap Bedrock de bloques.</p>
           </div>
 
           <div class="rail-block method-block">
@@ -80,6 +97,7 @@
               <li><i class="layer-color"></i>Color y resolución conservados</li>
               <li><i class="layer-normal"></i>Normal generada o preservada</li>
               <li><i class="layer-mer"></i>Rugosidad y metal automático</li>
+              <li><i class="layer-depth"></i><span id="depth-treatment">Profundidad en alpha de normal</span></li>
             </ul>
           </div>
         </aside>
@@ -90,7 +108,7 @@
               <p class="eyebrow orange">BANCO DE MATERIALES / LOCAL</p>
               <h1 id="hero-title">Convierte color<br />en <em>superficie.</em></h1>
               <p>Genera capas PBR normales, con lectura de material moderada. Mantiene la textura original; no la transforma en un espejo Glossy.</p>
-              <div class="hero-labels"><span>ALBEDO</span><span>NORMAL</span><span>MER / _S</span></div>
+              <div class="hero-labels"><span>ALBEDO</span><span>NORMAL</span><span>MER / _S</span><span>DEPTH</span></div>
             </div>
             <img class="hero-image" src="./pbr-normal-material-lab-hero.webp" alt="Estudio de piedra, madera y cobre con respuesta PBR normal" />
           </div>
@@ -113,10 +131,11 @@
           </section>
 
           <section class="generation-panel" aria-labelledby="generation-title">
-            <div class="generation-copy"><p class="eyebrow">03 / MAPAS DE SALIDA</p><h2 id="generation-title">PBR normal,<br /><em>sin acabado espejo.</em></h2><p id="output-description">La salida Java crea un resource pack ZIP con color preservado, normal derivada y mapa LABPBR <code>_s</code>.</p></div>
+            <div class="generation-copy"><p class="eyebrow">03 / MAPAS DE SALIDA</p><h2 id="generation-title">PBR normal,<br /><em>con profundidad.</em></h2><p id="output-description">La salida Java crea un resource pack ZIP con color preservado, normal derivada, profundidad en alpha y mapa LABPBR <code>_s</code>.</p></div>
             <div class="output-preview">
               <div class="channel-tile normal-tile"><span>N</span><b>Normal</b><small>pendiente local</small></div>
               <div class="channel-tile properties-tile"><span id="properties-letter">S</span><b id="properties-name">Propiedades</b><small id="properties-detail">suavidad · F0</small></div>
+              <div class="channel-tile depth-tile"><span id="depth-tile-symbol">α</span><b id="depth-tile-name">Profundidad</b><small id="depth-tile-detail">alpha de _n · escala 60</small></div>
               <div class="profile-note" id="profile-note">Lectura automática del nombre: metales, madera, piedra, vidrio y material genérico. Puedes conservar mapas ya existentes.</div>
             </div>
           </section>
@@ -127,7 +146,8 @@
           </section>
 
           <section class="studies" aria-label="Notas visuales de materiales">
-            <article class="study-card"><div class="study-art art-normal" role="img" aria-label="Visual abstracto de la capa normal con detalle de piedra"></div><div><p class="eyebrow">NORMAL</p><h3>Detalle que sigue<br />la textura.</h3><p>La normal se deriva de cambios de luminancia; no fabrica relieve geométrico.</p></div></article>
+            <article class="study-card"><div class="study-art art-normal" role="img" aria-label="Visual abstracto de la capa normal con detalle de piedra"></div><div><p class="eyebrow">NORMAL</p><h3>Detalle que sigue<br />la textura.</h3><p>La normal se deriva de cambios de luminancia y mantiene la dirección de superficie en RGB.</p></div></article>
+            <article class="study-card"><div class="study-art art-depth" role="img" aria-label="Visual abstracto de profundidad PBR en escala de grises"></div><div><p class="eyebrow">PROFUNDIDAD</p><h3>Altura guardada<br />sin recolorear.</h3><p>Una escala lineal de luz y bordes produce altura para alpha LABPBR o heightmap Bedrock.</p></div></article>
             <article class="study-card"><div class="study-art art-properties" role="img" aria-label="Visual abstracto de propiedades PBR para madera, piedra y metal"></div><div><p class="eyebrow">PROPIEDADES</p><h3>Rugosidad antes<br />que reflejo.</h3><p>El color original permanece intacto y la propiedad se asigna con cautela.</p></div></article>
             <article class="study-card"><div class="study-art art-output" role="img" aria-label="Visual abstracto de paquetes locales de salida"></div><div><p class="eyebrow">SALIDA</p><h3>Un archivo por<br />cada entrada.</h3><p>Todos los cálculos y compresión ZIP ocurren dentro de este navegador.</p></div></article>
           </section>
@@ -136,8 +156,8 @@
             <div><p class="eyebrow orange">LÍMITES CLAROS</p><h2>Capas útiles,<br />promesas honestas.</h2></div>
             <div class="notes-grid">
               <p><strong>Sin imágenes individuales.</strong> Java acepta ZIP/JAR; Bedrock, ZIP/MCPACK. Un JAR se lee solo como fuente Java y siempre exporta un ZIP.</p>
-              <p><strong>Sin emisión falsa.</strong> El canal emissive se deja en cero. No se generan heightmaps, AO horneado, bump ni parallax.</p>
-              <p><strong>Compatibilidad real.</strong> Bedrock Vibrant puede aplicar PBR a bloques, ítems y entidades; RTX conserva PBR solo para bloques.</p>
+              <p><strong>Profundidad explícita.</strong> Java guarda height/displacement en el alpha de <code>_n</code>. Bedrock usa Normal o Heightmap, nunca ambos en el mismo Texture Set.</p>
+              <p><strong>Compatibilidad real.</strong> Bedrock Vibrant permite Normal + MER en bloques, ítems y entidades; el modo Heightmap y RTX se restringen a bloques.</p>
               <p><strong>Control local.</strong> Límite de 300 MB y 20 000 texturas elegibles por archivo. Las texturas no abandonan el dispositivo.</p>
             </div>
           </section>
