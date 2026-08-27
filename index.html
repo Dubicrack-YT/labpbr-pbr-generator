@@ -47,6 +47,25 @@
             <p class="warning" id="profile-warning">Vibrant Visuals puede cambiar entre versiones, dispositivos y recursos activos. El pack no añade shaders.</p>
           </div>
 
+          <div class="rail-block bedrock-assets" id="bedrock-assets" hidden>
+            <p class="eyebrow">ASSETS BEDROCK</p>
+            <div class="asset-source-switch" role="radiogroup" aria-label="Origen de assets Bedrock">
+              <button class="asset-source is-selected" type="button" role="radio" aria-checked="true" data-bedrock-source="official"><span>01</span><strong>Oficiales</strong><small>Mojang · full.zip</small></button>
+              <button class="asset-source" type="button" role="radio" aria-checked="false" data-bedrock-source="custom"><span>02</span><strong>Custom</strong><small>ZIP o MCPACK propio</small></button>
+            </div>
+            <div class="official-assets-panel" id="official-assets-panel">
+              <div class="official-assets-heading"><span>MOJANG / bedrock-samples</span><a href="https://github.com/Mojang/bedrock-samples/releases" target="_blank" rel="noreferrer">RELEASES ↗</a></div>
+              <p class="official-assets-status" id="official-assets-status" aria-live="polite">Consultando releases oficiales…</p>
+              <div class="official-assets-controls" id="official-assets-controls" hidden>
+                <label class="release-picker" for="official-release"><span>VERSIÓN DISPONIBLE</span><select id="official-release" aria-label="Release oficial de Bedrock"></select></label>
+                <div class="release-facts"><b id="official-release-kind">ESTABLE</b><span id="official-release-size">—</span></div>
+                <p><code>full.zip</code> incluye texturas y binarios. <code>min.zip</code> no contiene los assets necesarios.</p>
+                <div class="official-actions"><button type="button" id="official-queue">USAR FULL.ZIP</button><a id="official-download" href="https://github.com/Mojang/bedrock-samples/releases" target="_blank" rel="noreferrer">DESCARGAR ↗</a></div>
+              </div>
+            </div>
+            <p class="source-note" id="source-note">El catálogo usa releases oficiales de Mojang. Si la lectura directa se bloquea, descarga el <code>full.zip</code> y súbelo desde Custom.</p>
+          </div>
+
           <div class="rail-block">
             <p class="eyebrow">DETALLE DE NORMAL</p>
             <div class="strength-readout"><output id="strength-output">2.2</output><span>intensidad</span></div>

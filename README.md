@@ -7,8 +7,8 @@
 | Destino | Entradas permitidas | Salida | Capas creadas o preservadas |
 | --- | --- | --- |
 | Java Edition | `.zip` o `.jar` | Resource pack `.zip` | PNG original, normal LABPBR `_n`, propiedades `_s` |
-| Bedrock · Vibrant Visuals | `.zip` o `.mcpack` | `.mcpack` | PNG original, `_normal`, `_mer`, `*.texture_set.json` |
-| Bedrock · RTX | `.zip` o `.mcpack` | `.mcpack` | Solo bloques: PNG original, `_normal`, `_mer`, `*.texture_set.json` |
+| Bedrock · Vibrant Visuals | Release oficial `full.zip`, `.zip` o `.mcpack` | `.mcpack` | PNG original, `_normal`, `_mer`, `*.texture_set.json` |
+| Bedrock · RTX | Release oficial `full.zip`, `.zip` o `.mcpack` | `.mcpack` | Solo bloques: PNG original, `_normal`, `_mer`, `*.texture_set.json` |
 
 PBR Forge nunca acepta PNG, JPG, WebP ni texturas individuales. Un JAR se utiliza únicamente como fuente Java y se exporta siempre como un resource pack ZIP; no modifica ni reempaqueta JAR ejecutables.
 
@@ -33,9 +33,10 @@ La salida mantiene cada textura de color y su resolución original. Si ya hay un
 
 1. Elige **Java LabPBR** o **Bedrock PBR** antes de cargar los archivos.
 2. Para Bedrock, selecciona **Vibrant Visuals** o **RTX**. Vibrant es el perfil multiplataforma recomendado; RTX requiere hardware y ray tracing compatibles. [2] [4]
-3. Sube uno o varios paquetes válidos; cada entrada produce una descarga independiente.
-4. Ajusta la intensidad de normal y pulsa **Generar mapas PBR**.
-5. Importa el ZIP en Java o el MCPACK en Bedrock y revisa el resultado en una copia de prueba del mundo.
+3. En **Assets Bedrock**, deja seleccionado **Oficiales** para consultar las releases de [`Mojang/bedrock-samples`][5]. El sitio muestra primero las versiones estables y solo ofrece assets `full.zip`, porque `min.zip` no contiene texturas ni binarios.
+4. Usa **Usar full.zip** para intentar poner la release en la cola local, o **Descargar** para obtenerla directamente de Mojang. Si GitHub bloquea la lectura cross-origin desde el sitio estático, descarga el archivo oficial y cambia a **Custom** para subir ese mismo `.zip`; Custom solo admite ZIP/MCPACK, sin JAR, APK ni imágenes individuales.
+5. Ajusta la intensidad de normal y pulsa **Generar mapas PBR**. Cada entrada genera una descarga independiente.
+6. Importa el ZIP en Java o el MCPACK en Bedrock y revisa el resultado en una copia de prueba del mundo.
 
 El límite local es de **300 MB por archivo**, **20 archivos por cola** y **20 000 texturas elegibles por archivo**. Canvas 2D, lectura ZIP y compresión ocurren localmente; el contenido del pack no se transmite a una API.
 
@@ -48,9 +49,9 @@ Vibrant Visuals y RTX siguen las mismas reglas de texture sets, aunque Vibrant d
 [1] [Overview of Physically Based Rendering — Microsoft Learn](https://learn.microsoft.com/en-us/minecraft/creator/documents/vibrantvisuals/pbroverview?view=minecraft-bedrock-stable)  
 [2] [Vibrant Visuals Resource Packs — Microsoft Learn](https://learn.microsoft.com/en-us/minecraft/creator/documents/vibrantvisuals/vvresourcepacks?view=minecraft-bedrock-stable)  
 [3] [Texture Set JSON and Introduction to Texture Sets — Microsoft Learn](https://learn.microsoft.com/en-us/minecraft/creator/reference/content/texturesetsreference/texturesetsconcepts/texturesetsintroduction?view=minecraft-bedrock-stable)  
-[4] [Getting Started with Ray Tracing — Microsoft Learn](https://learn.microsoft.com/en-us/minecraft/creator/documents/rtxgettingstarted?view=minecraft-bedrock-stable)
+[4] [Getting Started with Ray Tracing — Microsoft Learn](https://learn.microsoft.com/en-us/minecraft/creator/documents/rtxgettingstarted?view=minecraft-bedrock-stable)  
+[5] [Mojang bedrock-samples releases](https://github.com/Mojang/bedrock-samples/releases)
 
 ## Licencia
 
 MIT. Consulta [LICENSE](./LICENSE).
-

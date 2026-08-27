@@ -2,15 +2,16 @@
 (() => {
   const MAX_BYTES = 300 * 1024 * 1024;
   const MAX_TEXTURES = 20000;
-  const state = { edition: "java", profile: "vibrant", strength: 2.2, files: [], busy: false };
+  const BEDROCK_SAMPLES_API = "https://api.github.com/repos/Mojang/bedrock-samples/releases?per_page=24";
+  const state = { edition: "java", profile: "vibrant", bedrockSource: "official", strength: 2.2, files: [], busy: false, releases: [], selectedRelease: "", releasesState: "loading", officialLoading: false };
   const $ = (selector) => document.querySelector(selector);
   const elements = {
-    editionButtons: [...document.querySelectorAll(".edition-option")], profileButtons: [...document.querySelectorAll(".profile-option")],
-    bedrockProfiles: $("#bedrock-profiles"), profileWarning: $("#profile-warning"), strength: $("#strength"), strengthOutput: $("#strength-output"),
+    editionButtons: [...document.querySelectorAll(".edition-option")], profileButtons: [...document.querySelectorAll(".profile-option")], assetSourceButtons: [...document.querySelectorAll(".asset-source")],
+    bedrockProfiles: $("#bedrock-profiles"), bedrockAssets: $("#bedrock-assets"), officialAssetsPanel: $("#official-assets-panel"), profileWarning: $("#profile-warning"), strength: $("#strength"), strengthOutput: $("#strength-output"),
     formatChip: $("#format-chip"), fileInput: $("#file-input"), dropzone: $("#dropzone"), dropTitle: $("#drop-title"), dropHelp: $("#drop-help"),
     fileQueue: $("#file-queue"), convertButton: $("#convert-button"), resultLabel: $("#result-label"), processingSummary: $("#processing-summary"),
     outputDescription: $("#output-description"), propertiesLetter: $("#properties-letter"), propertiesName: $("#properties-name"), propertiesDetail: $("#properties-detail"),
-    profileNote: $("#profile-note"), toast: $("#toast")
+    profileNote: $("#profile-note"), toast: $("#toast"), officialStatus: $("#official-assets-status"), officialControls: $("#official-assets-controls"), officialRelease: $("#official-release"), officialReleaseKind: $("#official-release-kind"), officialReleaseSize: $("#official-release-size"), officialDownload: $("#official-download"), officialQueue: $("#official-queue"), sourceNote: $("#source-note")
   };
   let toastTimer;
 
@@ -26,10 +27,59 @@
   function cleanName(name) { return name.replace(/\.(zip|jar|mcpack)$/i, "").replace(/[^a-z0-9_-]+/gi, "-").replace(/^-+|-+$/g, "").slice(0, 70) || "pack"; }
   function isAllowed(file) { const ext = file.name.split(".").pop().toLowerCase(); return state.edition === "java" ? ["zip", "jar"].includes(ext) : ["zip", "mcpack"].includes(ext); }
   function zipName(file) { const base = cleanName(file.name); return state.edition === "java" ? `${base}-pbr-normal-java.zip` : `${base}-pbr-normal-${state.profile}.mcpack`; }
+  function releaseAsset() { return state.releases.find((release) => release.tag === state.selectedRelease) || state.releases[0]; }
+  function setOfficialStatus(message, isError = false) { elements.officialStatus.textContent = message; elements.officialStatus.classList.toggle("is-error", isError); }
+  function renderOfficialAssets() {
+    const release = releaseAsset();
+    const official = state.edition === "bedrock" && state.bedrockSource === "official";
+    elements.officialAssetsPanel.hidden = !official;
+    if (!official) return;
+    if (state.releasesState === "loading") { elements.officialControls.hidden = true; setOfficialStatus("Consultando releases oficiales…"); return; }
+    if (state.releasesState === "error") { elements.officialControls.hidden = true; setOfficialStatus("No se pudo cargar el catálogo. Abre Releases de Mojang y descarga un full.zip para subirlo en Custom.", true); return; }
+    elements.officialControls.hidden = false;
+    elements.officialRelease.innerHTML = state.releases.map((release) => `<option value="${escapeHtml(release.tag)}">${escapeHtml(release.tag)} · ${release.prerelease ? "Preview" : "estable"}</option>`).join("");
+    elements.officialRelease.value = release.tag;
+    elements.officialReleaseKind.textContent = release.prerelease ? "PREVIEW" : "ESTABLE";
+    elements.officialReleaseKind.classList.toggle("is-preview", release.prerelease);
+    elements.officialReleaseSize.textContent = `${fileSize(release.size)} · ${release.assetName}`;
+    elements.officialDownload.href = release.url;
+    elements.officialQueue.disabled = state.officialLoading;
+    elements.officialQueue.textContent = state.officialLoading ? "CARGANDO…" : "USAR FULL.ZIP";
+    setOfficialStatus(state.officialLoading ? "Intentando preparar el asset oficial dentro del navegador…" : "Selecciona una release estable o preview; el asset completo se conserva siempre como full.zip.");
+  }
+  async function loadOfficialAssets() {
+    try {
+      state.releasesState = "loading"; renderOfficialAssets();
+      const response = await fetch(BEDROCK_SAMPLES_API);
+      if (!response.ok) throw new Error(`GitHub respondió ${response.status}`);
+      const raw = await response.json();
+      state.releases = raw.map((release) => { const asset = release.assets.find((item) => /-full\.zip$/i.test(item.name)); return asset ? { tag: release.tag_name, prerelease: Boolean(release.prerelease), assetName: asset.name, url: asset.browser_download_url, size: asset.size } : null; }).filter(Boolean).sort((left, right) => Number(left.prerelease) - Number(right.prerelease));
+      if (!state.releases.length) throw new Error("No hay full.zip disponibles");
+      state.selectedRelease = state.releases.find((release) => !release.prerelease)?.tag || state.releases[0].tag;
+      state.releasesState = "ready";
+    } catch (error) { console.warn(error); state.releasesState = "error"; }
+    renderOfficialAssets();
+  }
+  async function useOfficialAsset() {
+    const release = releaseAsset(); if (!release || state.officialLoading) return;
+    state.officialLoading = true; renderOfficialAssets();
+    try {
+      const response = await fetch(release.url);
+      if (!response.ok) throw new Error(`El asset respondió ${response.status}`);
+      const blob = await response.blob(); addFiles([new File([blob], release.assetName, { type: "application/zip" })]);
+      setOfficialStatus(`${release.assetName} está listo para convertir localmente.`);
+    } catch (error) { console.warn(error); setOfficialStatus("La lectura directa fue bloqueada. Usa DESCARGAR y, cuando termine, cambia a Custom para subir el full.zip.", true); }
+    state.officialLoading = false; renderOfficialAssets();
+  }
 
   function syncInterface() {
     const bedrock = state.edition === "bedrock";
     elements.bedrockProfiles.hidden = !bedrock;
+    elements.bedrockAssets.hidden = !bedrock;
+    const officialMode = bedrock && state.bedrockSource === "official";
+    elements.fileInput.closest(".input-panel").classList.toggle("is-official-mode", officialMode);
+    elements.dropzone.hidden = officialMode;
+    elements.assetSourceButtons.forEach((item) => { const active = item.dataset.bedrockSource === state.bedrockSource; item.classList.toggle("is-selected", active); item.setAttribute("aria-checked", String(active)); });
     elements.fileInput.accept = bedrock ? ".zip,.mcpack" : ".zip,.jar";
     elements.formatChip.textContent = bedrock ? "BEDROCK · .ZIP / .MCPACK" : "JAVA · .ZIP / .JAR";
     elements.dropTitle.textContent = bedrock ? "Suelta Vanilla ZIP o MCPACK Bedrock" : "Suelta resource packs Java o JARs";
@@ -47,6 +97,7 @@
     elements.profileNote.textContent = bedrock && state.profile === "rtx"
       ? "RTX: se convierten únicamente texturas de bloques, según el alcance PBR documentado por Bedrock."
       : "Lectura automática del nombre: metales, madera, piedra, vidrio y material genérico. Puedes conservar mapas ya existentes.";
+    if (bedrock) { elements.sourceNote.innerHTML = officialMode ? "El catálogo usa releases oficiales de Mojang. Si la lectura directa se bloquea, descarga el <code>full.zip</code> y súbelo desde Custom." : "Custom acepta exclusivamente tu ZIP o MCPACK Bedrock. No se admiten JAR, APK ni imágenes individuales."; renderOfficialAssets(); }
     renderQueue();
   }
 
@@ -186,10 +237,14 @@
 
   elements.editionButtons.forEach(button => button.addEventListener("click", () => { if (state.busy) return; state.edition = button.dataset.edition; state.files = []; elements.editionButtons.forEach(item => { const active = item === button; item.classList.toggle("is-selected", active); item.setAttribute("aria-checked", String(active)); }); syncInterface(); }));
   elements.profileButtons.forEach(button => button.addEventListener("click", () => { if (state.busy) return; state.profile = button.dataset.profile; elements.profileButtons.forEach(item => { const active = item === button; item.classList.toggle("is-selected", active); item.setAttribute("aria-checked", String(active)); }); syncInterface(); }));
+  elements.assetSourceButtons.forEach(button => button.addEventListener("click", () => { if (state.busy) return; state.bedrockSource = button.dataset.bedrockSource; state.files = []; syncInterface(); }));
+  elements.officialRelease.addEventListener("change", () => { state.selectedRelease = elements.officialRelease.value; renderOfficialAssets(); });
+  elements.officialQueue.addEventListener("click", useOfficialAsset);
   elements.strength.addEventListener("input", () => { state.strength = Number(elements.strength.value); elements.strengthOutput.value = state.strength.toFixed(1); });
   elements.dropzone.addEventListener("click", () => elements.fileInput.click()); elements.fileInput.addEventListener("change", event => { addFiles([...event.target.files]); event.target.value = ""; });
   ["dragenter", "dragover"].forEach(type => elements.dropzone.addEventListener(type, event => { event.preventDefault(); elements.dropzone.classList.add("is-dragover"); }));
   ["dragleave", "drop"].forEach(type => elements.dropzone.addEventListener(type, event => { event.preventDefault(); elements.dropzone.classList.remove("is-dragover"); }));
   elements.dropzone.addEventListener("drop", event => addFiles([...event.dataTransfer.files])); elements.convertButton.addEventListener("click", convertAll);
   syncInterface();
+  void loadOfficialAssets();
 })();
